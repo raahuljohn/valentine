@@ -540,9 +540,23 @@
   });
 
   /* ── No button handler ── */
+  function jumpToRandomSpot() {
+    if (!fleeEnabled) return;
+    const bw = noBtn.offsetWidth;
+    const bh = noBtn.offsetHeight;
+    const pad = 20;
+    const newX = pad + Math.random() * (window.innerWidth - bw - pad * 2);
+    const newY = pad + Math.random() * (window.innerHeight - bh - pad * 2);
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+  }
+
   noBtn.addEventListener('click', () => {
     if (noCount >= maxNo) return;
     noCount++;
+
+    // jump to a random spot on every click
+    jumpToRandomSpot();
 
     // swap emoji with animation
     emojiDisplay.classList.add('swap');
