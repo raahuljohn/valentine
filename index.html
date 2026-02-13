@@ -505,13 +505,27 @@
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < FLEE_RADIUS) {
-      const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 1.2;
-      let newX = rect.left + Math.cos(angle) * FLEE_DISTANCE;
-      let newY = rect.top + Math.sin(angle) * FLEE_DISTANCE;
+      const yesRect = yesBtn.getBoundingClientRect();
+      const margin = 20;
+      const safeZone = {
+        left: yesRect.left - margin,
+        right: yesRect.right + margin,
+        top: yesRect.top - margin,
+        bottom: yesRect.bottom + margin,
+      };
 
-      const pad = 10;
-      newX = Math.max(pad, Math.min(window.innerWidth - rect.width - pad, newX));
-      newY = Math.max(pad, Math.min(window.innerHeight - rect.height - pad, newY));
+      let newX, newY, attempts = 0;
+      do {
+        const a = Math.atan2(dy, dx) + (Math.random() - 0.5) * 1.2;
+        newX = rect.left + Math.cos(a) * FLEE_DISTANCE;
+        newY = rect.top + Math.sin(a) * FLEE_DISTANCE;
+        const pad = 10;
+        newX = Math.max(pad, Math.min(window.innerWidth - rect.width - pad, newX));
+        newY = Math.max(pad, Math.min(window.innerHeight - rect.height - pad, newY));
+        const noRect = { left: newX, right: newX + rect.width, top: newY, bottom: newY + rect.height };
+        attempts++;
+        if (!rectsOverlap(noRect, safeZone)) break;
+      } while (attempts < 20);
 
       noBtn.style.left = newX + 'px';
       noBtn.style.top = newY + 'px';
@@ -540,13 +554,33 @@
   });
 
   /* ── No button handler ── */
+  function rectsOverlap(r1, r2) {
+    return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+  }
+
   function jumpToRandomSpot() {
     if (!fleeEnabled) return;
     const bw = noBtn.offsetWidth;
     const bh = noBtn.offsetHeight;
     const pad = 20;
-    const newX = pad + Math.random() * (window.innerWidth - bw - pad * 2);
-    const newY = pad + Math.random() * (window.innerHeight - bh - pad * 2);
+    const yesRect = yesBtn.getBoundingClientRect();
+    // add margin around Yes button so No never lands near it
+    const margin = 20;
+    const safeZone = {
+      left: yesRect.left - margin,
+      right: yesRect.right + margin,
+      top: yesRect.top - margin,
+      bottom: yesRect.bottom + margin,
+    };
+
+    let newX, newY, attempts = 0;
+    do {
+      newX = pad + Math.random() * (window.innerWidth - bw - pad * 2);
+      newY = pad + Math.random() * (window.innerHeight - bh - pad * 2);
+      const noRect = { left: newX, right: newX + bw, top: newY, bottom: newY + bh };
+      attempts++;
+    } while (rectsOverlap(noRect, safeZone) && attempts < 50);
+
     noBtn.style.left = newX + 'px';
     noBtn.style.top = newY + 'px';
   }
